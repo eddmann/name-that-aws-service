@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Name that AWS Service</title>
+
+    <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
+    />
+
+    <style>
+      body {
+        max-width: 900px;
+        text-align: center;
+      }
+
+      h1 img {
+        width: 50px;
+        margin-bottom: -5px;
+      }
+
+      #js-app svg {
+        padding: 20px 0;
+        height: 200px;
+        width: 200px;
+      }
+
+      #js-app progress {
+        width: 50%;
+      }
+
+      #js-app ul {
+        justify-content: center;
+        display: grid;
+        margin: 20px auto;
+        grid-template-columns: 300px 300px;
+        grid-column-gap: 20px;
+        grid-row-gap: 20px;
+      }
+
+      #js-app .medal {
+        font-size: 5em;
+      }
+
+      @media only screen and (max-width: 800px) {
+        #js-app ul {
+          grid-template-columns: 300px;
+        }
+      }
+    </style>
+
+    <script src="https://unpkg.com/@babel/standalone@7.17.7/babel.min.js"></script>
+    <script
+      src="https://unpkg.com/react@17.0.2/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1>Name that <img src="aws.svg" alt="AWS" /> Service</h1>
+    </header>
+
+    <div id="js-app"></div>
+
+    <script type="text/babel">
+      function useLocalStorage(key, initialValue) {
+        const [storedValue, setStoredValue] = React.useState(() => {
+          try {
+            const item = window.localStorage.getItem(key);
+            return item ? JSON.parse(item) : initialValue;
+          } catch (error) {
+            return initialValue;
+          }
+        });
+
+        const setValue = value => {
+          const valueToStore =
+            value instanceof Function ? value(storedValue) : value;
+          setStoredValue(valueToStore);
+          window.localStorage.setItem(key, JSON.stringify(valueToStore));
+        };
+
+        return [storedValue, setValue];
+      }
+    </script>
+
+    <script type="text/babel">
+      function StartScreen({ onStart, levels, options }) {
+        return (
+          <div>
+            <p>Think you know your AWS service icons? give this a try...</p>
+            <p>
+              <strong>Rules:</strong> {levels} icons, {options} options, 1
+              attempt
+            </p>
+            <button onClick={onStart}>Start Today's Quiz</button>
+          </div>
+        );
+      }
+
+      function GameOver({ score, levels }) {
+        const grade = score / levels;
+
+        return (
+          <div>
+            <span className="medal">
+              {grade < 0.4 ? '🥉' : grade > 0.75 ? '🥇' : '🥈'}
+            </span>
+            <p>
+              Game over, you scored <strong>{score}</strong> out of{' '}
+              <strong>{levels}</strong> today.
+            </p>
+            <p>Come back tomorrow for a new quiz!</p>
+          </div>
+        );
+      }
+
+      function Level({ level, onAnswer }) {
+        const [isHintEnabled, setHintEnabled] = React.useState(false);
+
+        React.useEffect(() => {
+          setHintEnabled(false);
+
+          const onKeyPress = ({ key }) => {
+            if (key == 'h') setHintEnabled(true);
+          };
+
+          window.addEventListener('keydown', onKeyPress);
+
+          return () => {
+            window.removeEventListener('keydown', onKeyPress);
+          };
+        }, [level]);
+
+        return (
+          <div>
+            <span dangerouslySetInnerHTML={{ __html: level.icon }} />
+            <ul>
+              {level.options.map(name => (
+                <button onClick={() => onAnswer(name === level.answer)}>
+                  {name}
+                </button>
+              ))}
+            </ul>
+            <p>
+              {(!isHintEnabled && (
+                <span>
+                  <kbd>h</kbd> for Hint
+                </span>
+              )) ||
+                level.hint}
+            </p>
+          </div>
+        );
+      }
+
+      function Game({ quiz }) {
+        const [levels, setLevels] = React.useState(quiz.levels);
+        const [score, setScore] = React.useState(undefined);
+        const [results, setResults] = useLocalStorage('results', {});
+        const totals = React.useMemo(
+          () => ({
+            levels: quiz.levels.length,
+            options: quiz.levels[0].options.length,
+          }),
+          [quiz]
+        );
+
+        if (results[quiz.name] !== undefined) {
+          return (
+            <GameOver
+              score={results[quiz.name].score}
+              levels={results[quiz.name].levels}
+            />
+          );
+        }
+
+        if (score === undefined) {
+          return (
+            <StartScreen
+              onStart={() => setScore(0)}
+              levels={totals.levels}
+              options={totals.options}
+            />
+          );
+        }
+
+        const onAnswer = isCorrect => {
+          if (isCorrect) setScore(score => score + 1);
+
+          if (levels.length === 1) {
+            setResults(results => ({
+              ...results,
+              [quiz.name]: { ...totals, score },
+            }));
+            return;
+          }
+
+          setLevels(([, ...remaining]) => remaining);
+        };
+
+        const [level] = levels;
+
+        return (
+          <div>
+            <progress
+              max={totals.levels}
+              value={totals.levels - levels.length}
+            />
+            <p>Current score: {score}</p>
+            <Level level={level} onAnswer={onAnswer} />
+          </div>
+        );
+      }
+    </script>
+
+    <script type="text/babel">
+      fetch('quiz/latest.json')
+        .then(r => r.json())
+        .then(quiz => {
+          ReactDOM.render(
+            <Game quiz={quiz} />,
+            document.getElementById('js-app')
+          );
+        });
+    </script>
+  </body>
+</html>

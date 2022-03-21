@@ -1,0 +1,25 @@
+name: "Generate today's quiz"
+
+on: workflow_dispatch
+
+jobs:
+  generate:
+    name: "Generate today's quiz"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Generate
+        run: make generate-todays-quiz
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Generate today's quiz"
+          file_pattern: public/quiz/*.json
+
+      - name: Publish
+        uses: JamesIves/github-pages-deploy-action@v4.2.5
+        with:
+          branch: gh-pages
+          folder: public
