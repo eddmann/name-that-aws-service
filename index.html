@@ -141,9 +141,11 @@
 
       function Level({ level, onAnswer }) {
         const [isHintEnabled, setHintEnabled] = React.useState(false);
+        const [hasAnswered, setAnswered] = React.useState(false);
 
         React.useEffect(() => {
           setHintEnabled(false);
+          setAnswered(false);
 
           const onKeyPress = ({ key }) => {
             if (key == 'h') setHintEnabled(true);
@@ -156,12 +158,20 @@
           };
         }, [level]);
 
+        const onChoice = isCorrect => {
+          setAnswered(true);
+          setTimeout(onAnswer, 1000, isCorrect);
+        };
+
         return (
           <div>
             <span dangerouslySetInnerHTML={{ __html: level.icon }} />
             <ul>
               {level.options.map(name => (
-                <button onClick={() => onAnswer(name === level.answer)}>
+                <button
+                  disabled={hasAnswered && name !== level.answer}
+                  onClick={() => onChoice(name === level.answer)}
+                >
                   {name}
                 </button>
               ))}
