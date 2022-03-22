@@ -17,6 +17,10 @@
         text-align: center;
       }
 
+      button {
+        white-space: normal;
+      }
+
       h1 img {
         width: 50px;
         margin-bottom: -5px;
@@ -35,6 +39,7 @@
       #js-app ul {
         justify-content: center;
         display: grid;
+        padding: 0;
         margin: 20px auto;
         grid-template-columns: 300px 300px;
         grid-column-gap: 20px;
@@ -46,6 +51,18 @@
       }
 
       @media only screen and (max-width: 800px) {
+        h1 {
+          font-size: 1.5em;
+        }
+
+        h1 img {
+          width: 40px;
+        }
+
+        #js-app progress {
+          width: 100%;
+        }
+
         #js-app ul {
           grid-template-columns: 300px;
         }
