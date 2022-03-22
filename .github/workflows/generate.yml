@@ -1,6 +1,9 @@
 name: "Generate today's quiz"
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 1 * * *'
 
 jobs:
   generate:
@@ -18,8 +21,6 @@ jobs:
           commit_message: "Generate today's quiz"
           file_pattern: public/quiz/*.json
 
-      - name: Publish
-        uses: JamesIves/github-pages-deploy-action@v4.2.5
-        with:
-          branch: gh-pages
-          folder: public
+  publish:
+    needs: generate
+    uses: eddmann/name-that-aws-service/.github/workflows/publish.yml@main
