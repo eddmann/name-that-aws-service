@@ -140,22 +140,12 @@
       }
 
       function Level({ level, onAnswer }) {
-        const [isHintEnabled, setHintEnabled] = React.useState(false);
+        const [isHintShown, setHintShown] = React.useState(false);
         const [hasAnswered, setAnswered] = React.useState(false);
 
         React.useEffect(() => {
-          setHintEnabled(false);
+          setHintShown(false);
           setAnswered(false);
-
-          const onKeyPress = ({ key }) => {
-            if (key == 'h') setHintEnabled(true);
-          };
-
-          window.addEventListener('keydown', onKeyPress);
-
-          return () => {
-            window.removeEventListener('keydown', onKeyPress);
-          };
         }, [level]);
 
         const onChoice = isCorrect => {
@@ -177,12 +167,13 @@
               ))}
             </ul>
             <p>
-              {(!isHintEnabled && (
-                <span>
-                  <kbd>h</kbd> for Hint
-                </span>
-              )) ||
-                level.hint}
+              {isHintShown ? (
+                level.hint
+              ) : (
+                <a href="#" onClick={() => setHintShown(true)}>
+                  Hint
+                </a>
+              )}
             </p>
           </div>
         );
