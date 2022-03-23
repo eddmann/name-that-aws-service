@@ -153,6 +153,11 @@
           setTimeout(onAnswer, 1000, isCorrect);
         };
 
+        const onHint = e => {
+          e.preventDefault();
+          setHintShown(true);
+        };
+
         return (
           <div>
             <span dangerouslySetInnerHTML={{ __html: level.icon }} />
@@ -170,7 +175,7 @@
               {isHintShown ? (
                 level.hint
               ) : (
-                <a href="#" onClick={() => setHintShown(true)}>
+                <a href="#" onClick={onHint}>
                   Hint
                 </a>
               )}
@@ -211,16 +216,17 @@
         }
 
         const onAnswer = isCorrect => {
-          if (isCorrect) setScore(score => score + 1);
+          const newScore = score + (isCorrect ? 1 : 0);
 
           if (levels.length === 1) {
             setResults(results => ({
               ...results,
-              [quiz.name]: { ...totals, score },
+              [quiz.name]: { ...totals, score: newScore },
             }));
             return;
           }
 
+          setScore(newScore);
           setLevels(([, ...remaining]) => remaining);
         };
 
