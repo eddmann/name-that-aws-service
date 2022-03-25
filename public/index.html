@@ -21,11 +21,6 @@
         white-space: normal;
       }
 
-      h1 img {
-        width: 50px;
-        margin-bottom: -5px;
-      }
-
       #js-app svg {
         padding: 20px 0;
         height: 200px;
@@ -67,6 +62,25 @@
           grid-template-columns: 300px;
         }
       }
+
+      .logo img  {
+        width: 50px;
+        margin-bottom: -5px;
+      }
+
+      .logo .dark {
+        display: none;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .logo .dark {
+          display: unset;
+        }
+        
+        .logo .light {
+          display: none;
+        }
+      }
     </style>
 
     <script src="https://unpkg.com/@babel/standalone@7.17.7/babel.min.js"></script>
@@ -81,7 +95,7 @@
   </head>
   <body>
     <header>
-      <h1>Name that <img src="aws.svg" alt="AWS" /> Service</h1>
+      <h1>Name that <span class="logo"><img class="dark" src="aws-dark.svg" alt="AWS logo" /><img class="light" src="aws-light.svg" alt="AWS logo" /></span> Service</h1>
     </header>
 
     <div id="js-app"></div>
